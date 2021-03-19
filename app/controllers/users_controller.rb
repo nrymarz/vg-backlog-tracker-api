@@ -1,20 +1,29 @@
 class UsersController < ApplicationController
-    def index
-        users = User.all
-        render json: users
+    before_action :authorized, only: [:show]
+    def show
+        user = current_user
+        render json:{user: user}
+
     end
 
-    def show
-        user = User.find_by(username: params[:id].parameterize)
+    def login
+        user = User.find_by(username: user_params[:username])
         render json: user
+        if user && user.authenticate(user_params[:password])
+            token = encode_token({user_id: user.id})
+            render json: {user: user, jwt: token}
+        else
+            render json: {error:'invalid'}
+        end
     end
 
     def create
         user = User.new(user_params)
         if user.save
-            render json: user
+            token = encode_token(user_id: user.id)
+            render json: {user: user, jwt: token} 
         else
-            render error
+            render json: {error: 'invalid'}
         end
     end
 
@@ -24,6 +33,6 @@ class UsersController < ApplicationController
     private
 
     def user_params
-        params.require(:user).permit(:username.parameterize,:password,:backlog)
+        params.require(:user).permit(:username,:password,:backlog)
     end
 end
