@@ -5,7 +5,7 @@ class UsersController < ApplicationController
     end
 
     def show
-        user = User.find_by(:username)
+        user = User.find_by(username: params[:id].parameterize)
         render json: user
     end
 
@@ -24,6 +24,6 @@ class UsersController < ApplicationController
     private
 
     def user_params
-        params.require(:user).permit(:username,:password,:backlog)
+        params.require(:user).permit(:username.parameterize,:password,:backlog)
     end
 end
